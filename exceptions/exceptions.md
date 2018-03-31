@@ -108,3 +108,46 @@ std::ios_base::failure
 
 All of these derive from `std::exception` and therefore can all be caught by the std::exception type.
 
+https://youtu.be/GvAIsxfq3K8
+
+
+---
+
+#### Curso   Exceptions   Exceptions Recap   Uncaught Exceptions
+
+## Uncaught exceptions
+
+If you define an ellipsis (...) as the parameter of an exception handler then it will catch any exception 
+type that is thrown in its associated try-block. This is most often used as a default exception handler 
+when no other exception handler type matches. This can be used as the default case of some chained exception 
+handlers such as.
+
+```C++
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    try {
+        throw 20;
+    }
+    catch (int exc) { cout << "int exception." << endl; }
+    catch (double exc) { cout << "double exception." << endl; }
+    catch (...) { cout << "All other exception types." << endl; }
+
+    try {
+        throw 20.0;
+    }
+    catch (int exc) { cout << "int exception." << endl; }
+    catch (double exc) { cout << "double exception." << endl; }
+    catch (...) { cout << "All other exception types." << endl; }
+
+    try {
+        throw true;
+    }
+    catch (int exc) { cout << "int exception." << endl; }
+    catch (double exc) { cout << "double exception." << endl;}
+    catch (...) { cout << "All other exception types." << endl; }
+
+}
+```
