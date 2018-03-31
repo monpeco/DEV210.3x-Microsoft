@@ -151,3 +151,23 @@ int main() {
 
 }
 ```
+
+You can also nest try-blocks and forward exceptions to the parent try-block using the throw keyword like so.
+
+```C++
+try {
+    try {
+        //Do something here that causes an exception
+        throw 10;
+    }
+    catch (int numb) {
+        cout << "Caught int exception." << endl;
+        throw;
+    }
+}
+catch (...) {
+    cout << "An error occurred." << endl;
+}
+```
+
+---
