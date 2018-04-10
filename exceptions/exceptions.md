@@ -230,10 +230,16 @@ catch (...) {
 
 https://youtu.be/1FTqSbT0Jvg
 
-An exception is uncaught if there is no associated exception handler to catch it. When this happens a call to terminate() is done automatically and any subsequent calls to termination functions that would normally be done during normal program execution does not happen, this includes calls to allocated objects destructor's functions.
+An exception is uncaught if there is no associated exception handler to catch it. When this happens a call to `terminate()` is 
+done automatically and any subsequent calls to termination functions that would normally be done during normal program 
+execution **does not happen**, this includes calls to allocated objects destructor's functions.
 
-This is especially problematic when you consider RAII (Resource acquisition is initialization). If a destructor throws an exception during stack unwinding the whole program will exit. When an exception occurs, program execution moves to that exception's exception handler and all automatic variables between the throw and catch are destroyed, this process is called stack unwinding. Consider the following code segment
+This is especially problematic when you consider **RAII** (**Resource acquisition is initialization**). **If a destructor throws an 
+exception during stack unwinding the whole program will exit**. When an exception occurs, program execution moves to that 
+exception's exception handler and all automatic variables between the throw and catch are destroyed, this process is called 
+stack unwinding. Consider the following code segment
 
+```c++
 #include <iostream>
 
 using namespace std;
@@ -267,12 +273,21 @@ int main() {
         cout << "Main Exception caught" << endl;
     }
 } 
-If you compile and run this code you will see the throwexception destructor is called and the program exits after printing out “throwexception destructor called”. So it is not considered good practice to throw exception in an objects destructor.
+```
+
+If you compile and run this code you will see the throwexception destructor is called and the program 
+exits after printing out “throwexception destructor called”. So it is not considered good practice to 
+throw exception in an objects destructor.
 
 https://youtu.be/2DwBFyRPyKQ
 
-Now consider the following situation. we want to update two vectors using the push_back function and either we update both vectors or neither of them to keep them synchronised. If we look at the std::vector documentation we will see push_back can throw an exception if the allocation fails. So If the first vector update succeeds but the second vector update fails then we have to roll back the update to the first vector. We could write some code like the following.
+Now consider the following situation. we want to update two vectors using the `push_back` function and 
+either we update both vectors or neither of them to keep them synchronised. If we look at the `std::vector` 
+documentation we will see `push_back` can throw an `exception` if the allocation fails. So If the first vector
+update succeeds but the second vector update fails then we have to roll back the update to the first vector.
+We could write some code like the following.
 
+```c++
 #include <iostream>
 #include <vector>
 
@@ -320,13 +335,23 @@ int main() {
     cout << "first vector size is " << firstvector.size() << " second vector size is " << secondvector.size() << endl;
 
 }
+```
 
 https://youtu.be/EuqRPqn_xX8
 
-Now if the first vector fails to update in updateVector function then the second vector is never tried and if the second vector fails to update then the last item added to the first vector is removed and the exception passed up. Although this works it is not the best implementation, if we have more vectors to update then the nested try-block complexity increases. This is shown in the above programs output when the updateVector2 function throws an exception before updating the second vector. which results in the vector sizes being unchanged even though the first vector had already been updated.
+Now if the first vector fails to update in `updateVector` function then the second vector is never tried 
+and if the second vector fails to update then the last item added to the first vector is removed and the 
+exception passed up. Although this works it is not the best implementation, if we have more vectors to 
+update then the nested try-block complexity increases. This is shown in the above programs output when 
+the `updateVector2` function throws an exception before updating the second vector. which results in the 
+vector sizes being unchanged even though the first vector had already been updated.
 
-What we really need to do is wrap the vector resources up in an object such that if either vector fails to update the object destructor is called and the update can be reversed. This procedure is generally referred to as scope guarding since the objects destructor will be called if it moves out of local scope. Let’s look at some code.
+What we really need to do is wrap the vector resources up in an object such that if either vector fails 
+to update the object `destructor` is called and the update can be reversed. This procedure is generally 
+referred to as **scope guarding** since the objects destructor will be called if it moves out of local scope. 
+Let’s look at some code.
 
+```c++
 #include <vector>
 #include <string>
 #include <iostream>
@@ -394,7 +419,9 @@ int main()
         cout << "Caught exception " << endl;
         cout << "Second use of scope guards error, first vector size is  " << firstvector.size() << " second vector size is " << secondvector.size() << endl;
     }
-}    
+}
+```
+
 So what does this do.? Well we define a template class called VecScopeGuard which takes a pointer to TContainer as a parameter in its constructor. We define a destructor for VecScopeGuard which checks if it is engaged and if so calls the std::vector method pop_back(). We define a disengage function which sets the bool engaged_ to false to stop the pop_back() function being called in the destructor. In the main method we create two std::string vectors and try to add an element to them. After the first vector has had an element added to it we create a VecScopeGuard object around it and then we add an element to the second vector. Should the second vector throw an exception during the push_back() function the exception handler will be invoked and the VecScopeGuard object around the first vector will move out of scope and hence it's destructor will be called. In the first try-catch block everything works and both vectors are updated with the string “Hello World” but in the second try-catch block we throw an exception to replicate what would happen if secondvector.push_back() failed. The exception handler is invoked and the console output confirms both vectors have the same size even though we had already added an element to the first vector successfully. Now this implementation is designed to only work with vectors as the VecScopeGuard destructor call the vector function pop_back(), a better generic implementation would avoid this and make it work for all objects and member functions in both the STL and user defined ones.
 
 One such implementation is Andrei Alexandrescu's c++ library called Loki which can be found here. In this library he defines some template classes to be used for generic exception handling. In particular, he has implemented a ScopeGuard which allows you to roll back updates such as the above vectors in a more scalable solution. To use his code you would do something like the following.
