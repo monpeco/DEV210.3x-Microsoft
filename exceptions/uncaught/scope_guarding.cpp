@@ -27,6 +27,19 @@ private:
 int main(){
   vector<string> firstVector;
   vector<string> secondVector;
+  string myString("Hello World!");
+
+  try{
+    firstVector.push_back(myString);
+    VecScopedGuard<vector<string>> guard1(&firstVector);
+    secondVector.push_back(myString);
+    VecScopedGuard<vector<string>> guard2(&secondVector);
+
+    guard1.disengage();
+    guard2.disengage();
+  }catch(...){
+    cout << "Caught error." << endl;
+  }
 
   return 0;
 }
