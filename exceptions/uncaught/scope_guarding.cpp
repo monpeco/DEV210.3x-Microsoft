@@ -40,6 +40,13 @@ int main(){
   }catch(...){
     cout << "Caught error." << endl;
   }
+  
+  cout << "First use of scope guards ok, first vector size is  " << firstVector.size() << " second vector size is " << secondVector.size() << endl;
+  
+  //Clear vectors.
+  firstVector.clear();
+  secondVector.clear();
+
 
   return 0;
 }
