@@ -47,6 +47,24 @@ int main(){
   firstVector.clear();
   secondVector.clear();
 
+  cout << "First use of scope guards ok, first vector size is  " << firstVector.size() << " second vector size is " << secondVector.size() << endl;
 
+  try{
+    firstVector.push_back(myString);
+    VecScopedGuard<std::vector<std::string>> guard1(&firstVector);
+    
+    std::bad_alloc excp;
+    throw excp; //Replicate error updating second vector.
+    
+    secondVector.push_back(myString);
+    VecScopedGuard<std::vector<std::string>> guard2(&secondVector);
+    guard1.disengage();
+    guard2.disengage();
+    
+  }catch(bad_alloc e){
+    cout << "Caught exception " << endl;
+    cout << "Second use of scope guards error, first vector size is  " << firstVector.size() << " second vector size is " << secondVector.size() << endl;
+  }
+  
   return 0;
 }
