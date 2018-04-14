@@ -4,13 +4,13 @@
 using namespace std;
 
 template<class TContainer>
-class VecScopedGuard{
+class VecScopeGuard{
 public:
-  VecScopedGuard(TContainer* vecptr)
+  VecScopeGuard(TContainer* vecptr)
     : engaged_(true), vecptr_(vecptr){ // Assign vecptr and set guard to true
   }
 
-  ~VecScopedGuard(){
+  ~VecScopeGuard(){
     if(engaged_){    // Remove last vector entry
       vecptr_->pop_back();
     }
@@ -31,9 +31,9 @@ int main(){
 
   try{
     firstVector.push_back(myString);
-    VecScopedGuard<vector<string>> guard1(&firstVector);
+    VecScopeGuard<vector<string>> guard1(&firstVector);
     secondVector.push_back(myString);
-    VecScopedGuard<vector<string>> guard2(&secondVector);
+    VecScopeGuard<vector<string>> guard2(&secondVector);
 
     guard1.disengage();
     guard2.disengage();
@@ -51,13 +51,13 @@ int main(){
 
   try{
     firstVector.push_back(myString);
-    VecScopedGuard<std::vector<std::string>> guard1(&firstVector);
+    VecScopeGuard<std::vector<std::string>> guard1(&firstVector);
     
     std::bad_alloc excp;
     throw excp; //Replicate error updating second vector.
     
     secondVector.push_back(myString);
-    VecScopedGuard<std::vector<std::string>> guard2(&secondVector);
+    VecScopeGuard<std::vector<std::string>> guard2(&secondVector);
     guard1.disengage();
     guard2.disengage();
     
@@ -68,3 +68,14 @@ int main(){
   
   return 0;
 }
+
+
+/*
+Output:
+
+First use of scope guards ok, first vector size is  1 second vector size is 1
+First use of scope guards ok, first vector size is  0 second vector size is 0
+Caught exception 
+Second use of scope guards error, first vector size is  0 second vector size is 0
+
+*/
